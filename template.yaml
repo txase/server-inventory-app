@@ -1,67 +1,458 @@
 AWSTemplateFormatVersion: 2010-09-09
 Transform: AWS::Serverless-2016-10-31
-Description: Stackery Serverless API Example Stack 
+Description: Stackery Serverless API Example Stack
+Metadata:
+  StackeryEnvConfigParameters:
+    StackeryEnvConfigdbrootPasswordAsString: db.rootPassword
 Resources:
-  function61D00F31:
-    Type: AWS::Serverless::Function
+  virtualNetworkFD141381:
+    Type: AWS::EC2::VPC
     Properties:
-      FunctionName: !Sub ${AWS::StackName}-function61D00F31
-      Description: !Sub
-        - Stackery Stack ${StackeryStackTagName} Environment ${StackeryEnvironmentTagName} Function ${ResourceName}
-        - ResourceName: getWelcomePage
-      CodeUri: src/getWelcomePage
-      Handler: index.handler
-      Runtime: nodejs8.10
-      MemorySize: 3008
-      Timeout: 30
-      Tracing: Active
-      Policies:
-        - AWSXrayWriteOnlyAccess
-      Events:
-        apiFE76C470:
-          Type: Api
-          Properties:
-            Path: /
-            Method: GET
-            RestApiId: !Ref apiFE76C470
+      CidrBlock: 10.0.0.0/16
+      Tags:
+        - Key: Name
+          Value: !Sub
+            - Stackery Stack ${StackeryStackTagName} Environment ${StackeryEnvironmentTagName} Virtual Network ${ResourceName}
+            - ResourceName: virtualNetworkFD141381
+  virtualNetworkFD141381PrivateSubnet1:
     Metadata:
-      StackeryName: getWelcomePage
-  apiFE76C470:
-    Type: AWS::Serverless::Api
+      StackeryManaged: true
+    Type: AWS::EC2::Subnet
     Properties:
-      Name: !Sub
-        - ${ResourceName} From Stackery Stack ${StackeryStackTagName} Environment ${StackeryEnvironmentTagName}
-        - ResourceName: apiFE76C470
-      StageName: !Ref StackeryEnvironmentAPIGatewayStageName
-      DefinitionBody:
-        swagger: '2.0'
-        info: {}
-        paths:
-          /:
-            get:
-              x-amazon-apigateway-integration:
-                httpMethod: POST
-                type: aws_proxy
-                uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${function61D00F31.Arn}/invocations
-              responses: {}
-      EndpointConfiguration: REGIONAL
-  function8E6C5467:
-    Type: AWS::Serverless::Function
-    Properties:
-      FunctionName: !Sub ${AWS::StackName}-function8E6C5467
-      Description: !Sub
-        - Stackery Stack ${StackeryStackTagName} Environment ${StackeryEnvironmentTagName} Function ${ResourceName}
-        - ResourceName: logErrors
-      CodeUri: src/logErrors
-      Handler: index.handler
-      Runtime: nodejs8.10
-      MemorySize: 3008
-      Timeout: 30
-      Tracing: Active
-      Policies:
-        - AWSXrayWriteOnlyAccess
+      AvailabilityZone: !Select
+        - 0
+        - !GetAZs ''
+      CidrBlock: !Select
+        - 0
+        - !Cidr
+          - 10.0.0.0/16
+          - 4
+          - 14
+      Tags:
+        - Key: Name
+          Value: !Sub
+            - Stackery Stack ${StackeryStackTagName} Environment ${StackeryEnvironmentTagName} Virtual Network ${ResourceName} Private Subnet 1
+            - ResourceName: virtualNetworkFD141381
+      VpcId: !Ref virtualNetworkFD141381
+  virtualNetworkFD141381PrivateSubnet2:
     Metadata:
-      StackeryName: logErrors
+      StackeryManaged: true
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: !Select
+        - 1
+        - !GetAZs ''
+      CidrBlock: !Select
+        - 1
+        - !Cidr
+          - 10.0.0.0/16
+          - 4
+          - 14
+      Tags:
+        - Key: Name
+          Value: !Sub
+            - Stackery Stack ${StackeryStackTagName} Environment ${StackeryEnvironmentTagName} Virtual Network ${ResourceName} Private Subnet 2
+            - ResourceName: virtualNetworkFD141381
+      VpcId: !Ref virtualNetworkFD141381
+  virtualNetworkFD141381PublicSubnet1:
+    Metadata:
+      StackeryManaged: true
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: !Select
+        - 0
+        - !GetAZs ''
+      CidrBlock: !Select
+        - 2
+        - !Cidr
+          - 10.0.0.0/16
+          - 4
+          - 14
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Sub
+            - Stackery Stack ${StackeryStackTagName} Environment ${StackeryEnvironmentTagName} Virtual Network ${ResourceName} Public Subnet 1
+            - ResourceName: virtualNetworkFD141381
+      VpcId: !Ref virtualNetworkFD141381
+  virtualNetworkFD141381PublicSubnet2:
+    Metadata:
+      StackeryManaged: true
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: !Select
+        - 1
+        - !GetAZs ''
+      CidrBlock: !Select
+        - 3
+        - !Cidr
+          - 10.0.0.0/16
+          - 4
+          - 14
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Sub
+            - Stackery Stack ${StackeryStackTagName} Environment ${StackeryEnvironmentTagName} Virtual Network ${ResourceName} Public Subnet 2
+            - ResourceName: virtualNetworkFD141381
+      VpcId: !Ref virtualNetworkFD141381
+  virtualNetworkFD141381PrivateSubnet1NatGatewayEIP:
+    Metadata:
+      StackeryManaged: true
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+  virtualNetworkFD141381PrivateSubnet1NatGateway:
+    Metadata:
+      StackeryManaged: true
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt virtualNetworkFD141381PrivateSubnet1NatGatewayEIP.AllocationId
+      SubnetId: !Ref virtualNetworkFD141381PublicSubnet1
+  virtualNetworkFD141381PrivateSubnet1RouteTable:
+    Metadata:
+      StackeryManaged: true
+    Type: AWS::EC2::RouteTable
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Sub
+            - Stackery Stack ${StackeryStackTagName} Environment ${StackeryEnvironmentTagName} Virtual Network ${ResourceName} Private Subnet 1 Route Table
+            - ResourceName: virtualNetworkFD141381
+      VpcId: !Ref virtualNetworkFD141381
+  virtualNetworkFD141381PrivateSubnet1NatGatewayRoute:
+    Metadata:
+      StackeryManaged: true
+    Type: AWS::EC2::Route
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref virtualNetworkFD141381PrivateSubnet1NatGateway
+      RouteTableId: !Ref virtualNetworkFD141381PrivateSubnet1RouteTable
+  virtualNetworkFD141381PrivateSubnet1RouteTableAssociation:
+    Metadata:
+      StackeryManaged: true
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref virtualNetworkFD141381PrivateSubnet1RouteTable
+      SubnetId: !Ref virtualNetworkFD141381PrivateSubnet1
+  virtualNetworkFD141381PrivateSubnet2NatGatewayEIP:
+    Metadata:
+      StackeryManaged: true
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+  virtualNetworkFD141381PrivateSubnet2NatGateway:
+    Metadata:
+      StackeryManaged: true
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt virtualNetworkFD141381PrivateSubnet2NatGatewayEIP.AllocationId
+      SubnetId: !Ref virtualNetworkFD141381PublicSubnet2
+  virtualNetworkFD141381PrivateSubnet2RouteTable:
+    Metadata:
+      StackeryManaged: true
+    Type: AWS::EC2::RouteTable
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Sub
+            - Stackery Stack ${StackeryStackTagName} Environment ${StackeryEnvironmentTagName} Virtual Network ${ResourceName} Private Subnet 2 Route Table
+            - ResourceName: virtualNetworkFD141381
+      VpcId: !Ref virtualNetworkFD141381
+  virtualNetworkFD141381PrivateSubnet2NatGatewayRoute:
+    Metadata:
+      StackeryManaged: true
+    Type: AWS::EC2::Route
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref virtualNetworkFD141381PrivateSubnet2NatGateway
+      RouteTableId: !Ref virtualNetworkFD141381PrivateSubnet2RouteTable
+  virtualNetworkFD141381PrivateSubnet2RouteTableAssociation:
+    Metadata:
+      StackeryManaged: true
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref virtualNetworkFD141381PrivateSubnet2RouteTable
+      SubnetId: !Ref virtualNetworkFD141381PrivateSubnet2
+  virtualNetworkFD141381PublicSubnetsInternetGateway:
+    Metadata:
+      StackeryManaged: true
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Sub
+            - Stackery Stack ${StackeryStackTagName} Environment ${StackeryEnvironmentTagName} Virtual Network ${ResourceName} Public Subnets Internet Gateway
+            - ResourceName: virtualNetworkFD141381
+  virtualNetworkFD141381PublicSubnetsInternetGatewayAttachment:
+    Metadata:
+      StackeryManaged: true
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      InternetGatewayId: !Ref virtualNetworkFD141381PublicSubnetsInternetGateway
+      VpcId: !Ref virtualNetworkFD141381
+  virtualNetworkFD141381PublicSubnetsRouteTable:
+    Metadata:
+      StackeryManaged: true
+    Type: AWS::EC2::RouteTable
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Sub
+            - Stackery Stack ${StackeryStackTagName} Environment ${StackeryEnvironmentTagName} Virtual Network ${ResourceName} Public Subnets Route Table
+            - ResourceName: virtualNetworkFD141381
+      VpcId: !Ref virtualNetworkFD141381
+  virtualNetworkFD141381PublicSubnetsInternetGatewayRoute:
+    Metadata:
+      StackeryManaged: true
+    Type: AWS::EC2::Route
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref virtualNetworkFD141381PublicSubnetsInternetGateway
+      RouteTableId: !Ref virtualNetworkFD141381PublicSubnetsRouteTable
+  virtualNetworkFD141381PublicSubnet1RouteTableAssociation:
+    Metadata:
+      StackeryManaged: true
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref virtualNetworkFD141381PublicSubnetsRouteTable
+      SubnetId: !Ref virtualNetworkFD141381PublicSubnet1
+  virtualNetworkFD141381PublicSubnet2RouteTableAssociation:
+    Metadata:
+      StackeryManaged: true
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref virtualNetworkFD141381PublicSubnetsRouteTable
+      SubnetId: !Ref virtualNetworkFD141381PublicSubnet2
+  bastion922544C4:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Metadata:
+      StackeryType: bastion
+    Properties:
+      LaunchConfigurationName: !Ref bastion922544C4LaunchConfiguration
+      MaxSize: 2
+      MinSize: 1
+      DesiredCapacity: 1
+      Tags:
+        - Key: Name
+          Value: !Sub
+            - Stackery Stack ${StackeryStackTagName} Environment ${StackeryEnvironmentTagName} Bastion ${ResourceName} Instance
+            - ResourceName: bastion922544C4
+          PropagateAtLaunch: true
+      VPCZoneIdentifier:
+        - !Ref virtualNetworkFD141381PublicSubnet1
+        - !Ref virtualNetworkFD141381PublicSubnet2
+    UpdatePolicy:
+      AutoScalingRollingUpdate:
+        MinInstancesInService: 1
+  bastion922544C4IAMRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          Effect: Allow
+          Principal:
+            Service: ec2.amazonaws.com
+          Action: sts:AssumeRole
+      RoleName: !Sub ${AWS::StackName}-bastion922544C4
+      Policies:
+        - PolicyName: BastionPermissions
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - cloudwatch:PutMetricData
+                  - cloudwatch:GetMetricStatistics
+                  - cloudwatch:ListMetrics
+                  - ec2:DescribeTags
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:DescribeLogStreams
+                  - logs:PutLogEvents
+                Resource:
+                  - arn:aws:logs:*:*:log-group:/stackery/bastion/*
+                  - arn:aws:logs:*:*:log-group:/stackery/bastion/*:log-stream:*
+  bastion922544C4IAMInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles:
+        - !Ref bastion922544C4IAMRole
+  bastion922544C4InstancesSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Bastion Instances Security Group
+      SecurityGroupIngress:
+        - CidrIp: 0.0.0.0/0
+          IpProtocol: tcp
+          FromPort: '22'
+          ToPort: '22'
+      SecurityGroupEgress:
+        - CidrIp: 0.0.0.0/0
+          IpProtocol: '-1'
+      Tags:
+        - Key: Name
+          Value: !Sub
+            - Stackery Stack ${StackeryStackTagName} Environment ${StackeryEnvironmentTagName} Bastion ${ResourceName} Instances Security Group
+            - ResourceName: bastion922544C4
+      VpcId: !Ref virtualNetworkFD141381
+  bastion922544C4LaunchConfiguration:
+    Type: AWS::AutoScaling::LaunchConfiguration
+    Properties:
+      IamInstanceProfile: !Ref bastion922544C4IAMInstanceProfile
+      ImageId: !Ref AmazonLinux2ImageId
+      InstanceType: t2.nano
+      SecurityGroups:
+        - !Ref bastion922544C4InstancesSecurityGroup
+      UserData: !Base64
+        Fn::Sub:
+          - |-
+            Content-Type: multipart/mixed; boundary="==BOUNDARY=="
+            MIME-Version: 1.0
+
+            --==BOUNDARY==
+            MIME-Version: 1.0
+            Content-Type: text/x-shellscript
+
+            #!/bin/bash
+            # Install awslogs, the jq JSON parser, and cfn-signal stuff
+            yum install -y awslogs jq
+
+            # Inject the CloudWatch Logs configuration file contents
+            cat > /etc/awslogs/awslogs.conf <<- EOF
+            [general]
+            state_file = /var/lib/awslogs/agent-state
+
+            [/var/log/dmesg]
+            file = /var/log/dmesg
+            log_group_name = /stackery/bastion/stackery-${AWS::StackName}-bastion922544C4/dmesg
+            log_stream_name = {instance_id}
+
+            [/var/log/messages]
+            file = /var/log/messages
+            log_group_name = /stackery/bastion/stackery-${AWS::StackName}-bastion922544C4/messages
+            log_stream_name = {instance_id}
+            datetime_format = %b %d %H:%M:%S
+
+            [/var/log/secure]
+            file = /var/log/secure
+            log_group_name = /stackery/bastion/stackery-${AWS::StackName}-bastion922544C4/secure
+            log_stream_name = {instance_id}
+
+            [/var/log/auth.log]
+            file = /var/log/auth.log
+            log_group_name = /stackery/bastion/stackery-${AWS::StackName}-bastion922544C4/auth.log
+            log_stream_name = {instance_id}
+
+            EOF
+
+            exec 2>>/var/log/cloudwatch-logs-start.log
+            set -x
+
+            # Grab the instance id ARN from instance metadata
+            instance_id=$(curl -s http://169.254.169.254/latest/meta-data/instance-id)
+
+            # Replace the instance ID placeholders with the actual values
+            sed -i -e "s/{instance_id}/$instance_id/g" /etc/awslogs/awslogs.conf
+
+            service awslogs start
+            chkconfig awslogs on
+
+            ########################################################################
+            # Create user logins and add their ssh key
+            ########################################################################
+            echo '${SSHKeys}' > ~ec2-user/users.json
+            filename="user.keys"
+            jq -r 'to_entries[] | "\(.key) \(.value)"' ~ec2-user/users.json > "$filename"
+
+            while read -r user key
+            do
+              echo "Adding user: $user"
+              useradd -m $user
+              homedir=$( getent passwd "$user" | cut -d: -f6 )
+              cd $homedir
+              mkdir .ssh
+              chmod 700 .ssh
+              chown $user:$user .ssh
+              echo "$key" >> .ssh/authorized_keys
+              chmod 600 .ssh/authorized_keys
+              chown $user:$user .ssh/authorized_keys
+
+            done < "$filename"
+
+            rm "$filename"
+            rm ~ec2-user/users.json
+
+            --==BOUNDARY==
+            MIME-Version: 1.0
+            Content-Type: text/x-shellscript
+
+            #!/bin/bash
+            # Set the region to send CloudWatch Logs data to (the region where the instance is located)
+            region=$(curl 169.254.169.254/latest/meta-data/placement/availability-zone | sed s'/.$//')
+            sed -i -e "s/region = us-east-1/region = $region/g" /etc/awslogs/awscli.conf
+
+            --==BOUNDARY==
+          - SSHKeys: '{"<username1>":"<public key>","<username2>":"<public key>"}'
+  database41E48DBC:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      AllocatedStorage: '5'
+      AllowMajorVersionUpgrade: true
+      AutoMinorVersionUpgrade: true
+      BackupRetentionPeriod: '0'
+      CopyTagsToSnapshot: true
+      DBInstanceClass: db.t2.micro
+      DBSubnetGroupName: !Ref database41E48DBCSubnetGroup
+      Engine: mariadb
+      EngineVersion: '10.2'
+      MasterUsername: root
+      MasterUserPassword: !Ref StackeryEnvConfigdbrootPasswordAsString
+      MultiAZ: false
+      PubliclyAccessible: false
+      StorageType: gp2
+      Tags:
+        - Key: Name
+          Value: !Sub
+            - Stackery Stack ${StackeryStackTagName} Environment ${StackeryEnvironmentTagName} Database ${ResourceName}
+            - ResourceName: Inventory
+      VPCSecurityGroups:
+        - !Ref database41E48DBCSecurityGroup
+    Metadata:
+      StackeryName: Inventory
+  database41E48DBCSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: !Sub
+        - Stackery Stack ${StackeryStackTagName} Environment ${StackeryEnvironmentTagName} Database ${ResourceName} VPC Subnets
+        - ResourceName: database41E48DBC
+      SubnetIds:
+        - !Ref virtualNetworkFD141381PrivateSubnet1
+        - !Ref virtualNetworkFD141381PrivateSubnet2
+      Tags:
+        - Key: Name
+          Value: !Sub
+            - Stackery Stack ${StackeryStackTagName} Environment ${StackeryEnvironmentTagName} Database ${ResourceName} VPC Subnets
+            - ResourceName: database41E48DBC
+  database41E48DBCSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Database Security Group
+      SecurityGroupIngress:
+        CidrIp: 0.0.0.0/0
+        FromPort: 3306
+        IpProtocol: tcp
+        ToPort: 3306
+      Tags:
+        - Key: Name
+          Value: !Sub
+            - Stackery Stack ${StackeryStackTagName} Environment ${StackeryEnvironmentTagName} Database ${ResourceName} VPC Security Group
+            - ResourceName: Inventory
+      VpcId: !Ref virtualNetworkFD141381
 Parameters:
   StackeryStackTagName:
     Type: String
@@ -69,9 +460,9 @@ Parameters:
   StackeryEnvironmentTagName:
     Type: String
     Description: Environment Name (injected by Stackery at deployment time)
-  StackeryEnvironmentAPIGatewayStageName:
-    Type: String
-    Description: Environment name used for API Gateway Stage names (injected by Stackery at deployment time)
-Metadata:
-  StackeryErrorsTargets:
-    function8E6C5467: {}
+  AmazonLinux2ImageId:
+    Type: AWS::EC2::Image::Id
+    Description: Latest Amazon Linux 2 AMI ID (injected by Stackery at deployment time)
+  StackeryEnvConfigdbrootPasswordAsString:
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: /Stackery/Environments/<StackeryEnvId>/Config/db/rootPassword
