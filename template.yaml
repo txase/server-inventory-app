@@ -559,7 +559,7 @@ Resources:
       Description: !Sub
         - Stackery Stack ${StackeryStackTagName} Environment ${StackeryEnvironmentTagName} Function ${ResourceName}
         - ResourceName: chatops
-      CodeUri: src/function6F448A8F
+      CodeUri: src/chatops
       Handler: index.handler
       Runtime: nodejs8.10
       MemorySize: 3008
