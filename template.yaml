@@ -4,6 +4,7 @@ Description: Stackery Serverless API Example Stack
 Metadata:
   StackeryEnvConfigParameters:
     StackeryEnvConfigdbrootPasswordAsString: db.rootPassword
+    StackeryEnvConfigslackVerificationTokenAsString: slackVerificationToken
 Resources:
   virtualNetworkFD141381:
     Type: AWS::EC2::VPC
@@ -578,6 +579,7 @@ Resources:
           DB_ADDRESS: !GetAtt database41E48DBC.Endpoint.Address
           DB_PORT: !GetAtt database41E48DBC.Endpoint.Port
           DB_ARN: !Sub arn:aws:rds:${AWS::Region}:${AWS::AccountId}:db:${database41E48DBC}
+          SLACK_VERIFICATION_TOKEN: !Ref StackeryEnvConfigslackVerificationTokenAsString
       Events:
         api34AED1F2:
           Type: Api
@@ -601,3 +603,6 @@ Parameters:
   StackeryEnvironmentAPIGatewayStageName:
     Type: String
     Description: Environment name used for API Gateway Stage names (injected by Stackery at deployment time)
+  StackeryEnvConfigslackVerificationTokenAsString:
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: /Stackery/Environments/<StackeryEnvId>/Config/slackVerificationToken
