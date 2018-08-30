@@ -16,6 +16,7 @@ module.exports.handler = async message => {
     case 'event_callback':
       if (body.event.type !== 'app_mention') {
         throw new Error(`Unrecognized callback type: ${body.event.type}`);
+      }
 
       return handleMention(body.event);
 
