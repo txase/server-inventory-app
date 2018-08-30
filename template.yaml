@@ -453,6 +453,84 @@ Resources:
             - Stackery Stack ${StackeryStackTagName} Environment ${StackeryEnvironmentTagName} Database ${ResourceName} VPC Security Group
             - ResourceName: Inventory
       VpcId: !Ref virtualNetworkFD141381
+  dockerTask5D11D70C:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      ContainerDefinitions:
+        - Image: hello-world
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref dockerTask5D11D70CLogGroup
+              awslogs-region: !Ref AWS::Region
+              awslogs-stream-prefix: hello-world
+          Name: 0
+          Environment:
+            - Name: DB_INSTANCE
+              Value: !Ref database41E48DBC
+            - Name: DB_ADDRESS
+              Value: !GetAtt database41E48DBC.Endpoint.Address
+            - Name: DB_PORT
+              Value: !GetAtt database41E48DBC.Endpoint.Port
+            - Name: DB_ARN
+              Value: !Sub arn:aws:rds:${AWS::Region}:${AWS::AccountId}:db:${database41E48DBC}
+      Cpu: 1024
+      ExecutionRoleArn: !GetAtt dockerTask5D11D70CExecutionRole.Arn
+      Memory: 2048
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      TaskRoleArn: !GetAtt dockerTask5D11D70CTaskRole.Arn
+      Volumes: []
+    DependsOn: dockerTask5D11D70CLogGroup
+    Metadata:
+      StackeryVirtualNetworkData:
+        SubnetIds:
+          - !Ref virtualNetworkFD141381PrivateSubnet1
+          - !Ref virtualNetworkFD141381PrivateSubnet2
+  dockerTask5D11D70CLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /stackery/task/${AWS::StackName}-dockerTask5D11D70C/hello-world
+  dockerTask5D11D70CExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub ${AWS::StackName}-DockerTaskExecutionRole
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          Effect: Allow
+          Principal:
+            Service: ecs-tasks.amazonaws.com
+          Action: sts:AssumeRole
+      Policies:
+        - PolicyName: DownloadDockerImagesFromECR
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: !Sub arn:aws:logs:*:*:log-group:/stackery/task/${AWS::StackName}-*
+              - Effect: Allow
+                Action:
+                  - ecr:GetAuthorizationToken
+                  - ecr:BatchCheckLayerAvailability
+                  - ecr:GetDownloadUrlForLayer
+                  - ecr:BatchGetImage
+                Resource: '*'
+  dockerTask5D11D70CTaskRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub ${AWS::StackName}-DockerTaskTaskRole
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          Effect: Allow
+          Principal:
+            Service: ecs-tasks.amazonaws.com
+          Action: sts:AssumeRole
 Parameters:
   StackeryStackTagName:
     Type: String
