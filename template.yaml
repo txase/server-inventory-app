@@ -531,6 +531,60 @@ Resources:
           Principal:
             Service: ecs-tasks.amazonaws.com
           Action: sts:AssumeRole
+  api34AED1F2:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: !Sub
+        - ${ResourceName} From Stackery Stack ${StackeryStackTagName} Environment ${StackeryEnvironmentTagName}
+        - ResourceName: api34AED1F2
+      StageName: !Ref StackeryEnvironmentAPIGatewayStageName
+      DefinitionBody:
+        swagger: '2.0'
+        info: {}
+        paths:
+          /events:
+            post:
+              x-amazon-apigateway-integration:
+                httpMethod: POST
+                type: aws_proxy
+                uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${function6F448A8F.Arn}/invocations
+              responses: {}
+      EndpointConfiguration: REGIONAL
+  function6F448A8F:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub ${AWS::StackName}-function6F448A8F
+      Description: !Sub
+        - Stackery Stack ${StackeryStackTagName} Environment ${StackeryEnvironmentTagName} Function ${ResourceName}
+        - ResourceName: function6F448A8F
+      CodeUri: src/function6F448A8F
+      Handler: index.handler
+      Runtime: nodejs8.10
+      MemorySize: 3008
+      Timeout: 30
+      Tracing: Active
+      Policies:
+        - AWSXrayWriteOnlyAccess
+        - AWSLambdaENIManagementAccess
+      VpcConfig:
+        SecurityGroupIds:
+          - !GetAtt virtualNetworkFD141381.DefaultSecurityGroup
+        SubnetIds:
+          - !Ref virtualNetworkFD141381PrivateSubnet1
+          - !Ref virtualNetworkFD141381PrivateSubnet2
+      Environment:
+        Variables:
+          DB_INSTANCE: !Ref database41E48DBC
+          DB_ADDRESS: !GetAtt database41E48DBC.Endpoint.Address
+          DB_PORT: !GetAtt database41E48DBC.Endpoint.Port
+          DB_ARN: !Sub arn:aws:rds:${AWS::Region}:${AWS::AccountId}:db:${database41E48DBC}
+      Events:
+        api34AED1F2:
+          Type: Api
+          Properties:
+            Path: /events
+            Method: POST
+            RestApiId: !Ref api34AED1F2
 Parameters:
   StackeryStackTagName:
     Type: String
@@ -544,3 +598,6 @@ Parameters:
   StackeryEnvConfigdbrootPasswordAsString:
     Type: AWS::SSM::Parameter::Value<String>
     Default: /Stackery/Environments/<StackeryEnvId>/Config/db/rootPassword
+  StackeryEnvironmentAPIGatewayStageName:
+    Type: String
+    Description: Environment name used for API Gateway Stage names (injected by Stackery at deployment time)
