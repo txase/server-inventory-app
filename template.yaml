@@ -5,6 +5,7 @@ Metadata:
   StackeryEnvConfigParameters:
     StackeryEnvConfigdbrootPasswordAsString: db.rootPassword
     StackeryEnvConfigslackVerificationTokenAsString: slackVerificationToken
+    StackeryEnvConfigslackBotAccessTokenAsString: slackBotAccessToken
 Resources:
   virtualNetworkFD141381:
     Type: AWS::EC2::VPC
@@ -557,7 +558,7 @@ Resources:
       FunctionName: !Sub ${AWS::StackName}-function6F448A8F
       Description: !Sub
         - Stackery Stack ${StackeryStackTagName} Environment ${StackeryEnvironmentTagName} Function ${ResourceName}
-        - ResourceName: function6F448A8F
+        - ResourceName: chatops
       CodeUri: src/function6F448A8F
       Handler: index.handler
       Runtime: nodejs8.10
@@ -581,6 +582,7 @@ Resources:
           DB_ARN: !Sub arn:aws:rds:${AWS::Region}:${AWS::AccountId}:db:${database41E48DBC}
           SLACK_VERIFICATION_TOKEN: !Ref StackeryEnvConfigslackVerificationTokenAsString
           DB_PASSWORD: !Ref StackeryEnvConfigdbrootPasswordAsString
+          SLACK_BOT_ACCESS_TOKEN: !Ref StackeryEnvConfigslackBotAccessTokenAsString
       Events:
         api34AED1F2:
           Type: Api
@@ -588,6 +590,8 @@ Resources:
             Path: /events
             Method: POST
             RestApiId: !Ref api34AED1F2
+    Metadata:
+      StackeryName: chatops
 Parameters:
   StackeryStackTagName:
     Type: String
@@ -607,3 +611,6 @@ Parameters:
   StackeryEnvConfigslackVerificationTokenAsString:
     Type: AWS::SSM::Parameter::Value<String>
     Default: /Stackery/Environments/<StackeryEnvId>/Config/slackVerificationToken
+  StackeryEnvConfigslackBotAccessTokenAsString:
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: /Stackery/Environments/<StackeryEnvId>/Config/slackBotAccessToken
