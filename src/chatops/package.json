@@ -1,6 +1,9 @@
 {
   "private": true,
   "dependencies": {
-    "aws-sdk": "~2"
+    "aws-sdk": "~2",
+    "knex": "^0.15.2",
+    "mysql": "^2.16.0",
+    "node-fetch": "^2.2.0"
   }
 }
