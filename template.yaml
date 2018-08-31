@@ -549,7 +549,7 @@ Resources:
               x-amazon-apigateway-integration:
                 httpMethod: POST
                 type: aws_proxy
-                uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${function21AA719E.Arn}/invocations
+                uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${function6F448A8F.Arn}/invocations
               responses: {}
       EndpointConfiguration: REGIONAL
   function6F448A8F:
@@ -583,37 +583,6 @@ Resources:
           SLACK_VERIFICATION_TOKEN: !Ref StackeryEnvConfigslackVerificationTokenAsString
           DB_PASSWORD: !Ref StackeryEnvConfigdbrootPasswordAsString
           SLACK_BOT_ACCESS_TOKEN: !Ref StackeryEnvConfigslackBotAccessTokenAsString
-    Metadata:
-      StackeryName: chatops
-  function21AA719E:
-    Type: AWS::Serverless::Function
-    Properties:
-      FunctionName: !Sub ${AWS::StackName}-function21AA719E
-      Description: !Sub
-        - Stackery Stack ${StackeryStackTagName} Environment ${StackeryEnvironmentTagName} Function ${ResourceName}
-        - ResourceName: ingest
-      CodeUri: src/ingest
-      Handler: index.handler
-      Runtime: nodejs8.10
-      MemorySize: 3008
-      Timeout: 30
-      Tracing: Active
-      Policies:
-        - AWSXrayWriteOnlyAccess
-        - AWSLambdaENIManagementAccess
-        - AWSLambdaENIManagementAccess
-        - LambdaInvokePolicy:
-            FunctionName: !Ref function6F448A8F
-      VpcConfig:
-        SecurityGroupIds:
-          - !GetAtt virtualNetworkFD141381.DefaultSecurityGroup
-        SubnetIds:
-          - !Ref virtualNetworkFD141381PrivateSubnet1
-          - !Ref virtualNetworkFD141381PrivateSubnet2
-      Environment:
-        Variables:
-          FUNCTION_NAME: !Ref function6F448A8F
-          FUNCTION_ARN: !GetAtt function6F448A8F.Arn
       Events:
         api34AED1F2:
           Type: Api
@@ -622,7 +591,7 @@ Resources:
             Method: POST
             RestApiId: !Ref api34AED1F2
     Metadata:
-      StackeryName: ingest
+      StackeryName: chatops
 Parameters:
   StackeryStackTagName:
     Type: String
