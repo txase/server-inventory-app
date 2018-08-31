@@ -36,17 +36,25 @@ const handleMention = async event => {
   if (killMatch) {
     const serversToKill = killMatch[1].split(/[,\s]+/);
 
-    await db()('servers')
+    const db = connect();
+
+    await db('servers')
       .whereIn('name', serversToKill)
       .delete();
+
+    await db.destroy();
 
     await postMessage({
       text: `Killed servers ${serversToKill.join(', ')}`,
       channel: event.channel
     });
   } else if (event.text.includes('killall')) {
-    await db()('servers')
+    const db = connect();
+
+    await db('servers')
       .delete();
+
+    await db.destroy();
 
     await postMessage({
       text: `Killed all the servers!`,
@@ -79,7 +87,7 @@ const postMessage = async message => {
   });
 };
 
-const db = () => require('knex')({
+const connect = () => require('knex')({
   client: 'mysql',
   connection: {
     host: process.env.DB_ADDRESS,
