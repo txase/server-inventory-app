@@ -85,7 +85,8 @@ const db = () => require('knex')({
     host: process.env.DB_ADDRESS,
     port: process.env.DB_PORT,
     user: 'root',
-    password: process.env.DB_PASSWORD
+    password: process.env.DB_PASSWORD,
+    database: 'inventory'
   }
 });
 
