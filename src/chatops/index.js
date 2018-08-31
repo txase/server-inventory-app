@@ -35,9 +35,30 @@ const handleMention = async event => {
     await db()('servers')
       .whereIn('name', serversToKill)
       .delete();
+
+    await postMessage({
+      text: `Killed servers ${serversToKill.join(', ')}`,
+      channel: event.channel
+    });
   } else if (event.text.includes('killall')) {
     await db()('servers')
       .delete();
+
+    await postMessage({
+      text: `Killed all the servers!`,
+      channel: event.channel,
+      attachments: [
+        {
+          title: 'serverless datacenter',
+          image_url: 'https://pbs.twimg.com/media/Dkwpi-HUwAAYzpp.jpg'
+        }
+      ]
+    });
+  } else {
+    await postMessage({
+      text: 'Hi! I can manage your servers for you. Unfortunately, all I know how to do is kill them. Please tell me which ones you want to kill.',
+      channel: event.channel
+    });
   }
 };
 
