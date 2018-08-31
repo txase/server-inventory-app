@@ -20,7 +20,9 @@ module.exports.handler = async message => {
         throw new Error(`Unrecognized callback type: ${body.event.type}`);
       }
 
-      return handleMention(body.event);
+      await handleMention(body.event);
+
+      return {};
 
     default:
       throw new Error(`Unrecognized event type: ${body.type}`);
