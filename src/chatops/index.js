@@ -1,4 +1,6 @@
 module.exports.handler = async message => {
+  console.log(message.body.toString());
+
   const body = JSON.parse(message.body.toString());
 
   if (body.token != process.env.SLACK_VERIFICATION_TOKEN) {
